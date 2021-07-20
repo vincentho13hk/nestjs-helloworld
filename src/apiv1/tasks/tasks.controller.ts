@@ -1,47 +1,53 @@
 import { Body, Controller, Get, Post, Header, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiCreatedResponse, ApiForbiddenResponse, ApiOperation, ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiOperation,
+  ApiProperty,
+  ApiPropertyOptional,
+} from '@nestjs/swagger';
 import { Task } from 'src/db/taskmanagement/entities/Task';
 import { TasksService } from 'src/services/tasks/tasks.service';
 
+import { GetUser } from 'src/common/decorators/user.decorator';
+import { User } from 'src/db/taskmanagement/entities/User';
+
 export class TasksData {
   @ApiProperty({ description: 'User task list' })
-  tasks: string[]
+  tasks: string[];
 }
 
 export class TasksInfoDTO {
   @ApiProperty({ description: 'Task name' })
-  title: string
+  title: string;
 
   @ApiPropertyOptional({ description: 'Task Description' })
-  description?: string
+  description?: string;
 
   @ApiPropertyOptional({ description: 'IsCompleted' })
-  status: boolean
+  status: boolean;
 }
 
 export class BaseTaskResponse {
-  @ApiProperty({ description: "User Task Info" })
-  task: Task
+  @ApiProperty({ description: 'User Task Info' })
+  task: Task;
 }
 
 @Controller('tasks')
 export class TasksController {
-
-  constructor(
-    private readonly tasksService: TasksService
-  ) { }
+  constructor(private readonly tasksService: TasksService) {}
 
   @Get()
   @ApiOperation({
     summary: 'Get All Tasks',
     description: `
     Get All Tasks From the user
-    `
+    `,
   })
   @ApiCreatedResponse({
     description: 'The info has been successfully fetched',
-    type: TasksData
+    type: TasksData,
   })
   getAllTask() {
     return this.tasksService.getTasks;
@@ -52,20 +58,20 @@ export class TasksController {
   @UseGuards(AuthGuard())
   @ApiOperation({
     summary: 'Create Task Info',
-    description: `Create User Task Info`
+    description: `Create User Task Info`,
   })
   @ApiCreatedResponse({
     description: 'The info has been successfully created.',
-    type: BaseTaskResponse
+    type: BaseTaskResponse,
   })
   @ApiForbiddenResponse({ description: 'Forbidden.' })
   @Header('content-type', 'application/json')
   async createTask(
-    @Body() body: TasksInfoDTO
+    @Body() body: TasksInfoDTO,
+    @GetUser() user: User,
   ): Promise<BaseTaskResponse> {
-    return await this.tasksService.createTask(body)
+    return await this.tasksService.createTask(body, user);
   }
-
 
   // @Post()
   // @ApiOperation({
